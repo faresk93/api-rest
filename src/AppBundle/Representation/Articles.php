@@ -23,7 +23,7 @@ class Articles
 
     public function __construct(Pagerfanta $data)
     {
-        $this->data = $data;
+        $this->data = $data->getCurrentPageResults();
         $this->addMeta('limit', $data->getMaxPerPage());
         $this->addMeta('current_items', count($data->getCurrentPageResults()));
         $this->addMeta('total_items', $data->getNbResults());

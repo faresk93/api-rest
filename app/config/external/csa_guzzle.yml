@@ -1,0 +1,7 @@
+csa_guzzle:
+    profiler: '%kernel.debug%'
+    clients:
+        weather_api:
+            config:
+                base_uri: 'http://api.openweathermap.org'
+    default_client: weather_api

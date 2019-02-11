@@ -3,24 +3,24 @@
 namespace AppBundle\Controller;
 
 use AppBundle\Entity\Article;
+use AppBundle\Entity\Author;
 use AppBundle\Exception\ResourceValidationException;
-use AppBundle\Form\ArticleType;
-use AppBundle\Repository\ArticleRepository;
 use AppBundle\Representation\Articles;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\Controller\FOSRestController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
+use Nelmio\ApiDocBundle\Annotation as Doc;
+use Swagger\Annotations as SWG;
 
 class ArticleController extends FOSRestController
 {
     /**
      * @Rest\Get(
      *     path="/articles/{id}",
-     *     name="app_articles_show",
+     *     name="app_article_show",
      *     requirements={"id"="\d+"}
      * )
      * @Rest\View()
@@ -38,11 +38,12 @@ class ArticleController extends FOSRestController
 
     /**
      * @Rest\Post(
-     *     path="/articles",
-     *     name="app_articles_post"
+     *     path="/articles/{author_id}",
+     *     name="app_article_create"
      * )
      *
      * @Rest\View(statusCode=201)
+     * @ParamConverter("author", options={"id"="author_id"})
      * @ParamConverter(
      *     "article",
      *     converter="fos_rest.request_body",
@@ -52,14 +53,14 @@ class ArticleController extends FOSRestController
      * )
      *
      * @param Article $article
+     * @param Author $author
      * @param ConstraintViolationList $violations
      * @return \FOS\RestBundle\View\View
      * @throws ResourceValidationException
      */
-    public function createAction(Article $article, ConstraintViolationList $violations)
+    public function createAction(Article $article, Author $author, ConstraintViolationList $violations)
     {
         if  (count($violations)) {
-
             $message = 'The JSON contains invalid data:';
             foreach ($violations as $violation) {
                 $message.= sprintf(
@@ -69,9 +70,10 @@ class ArticleController extends FOSRestController
 
                 );
             }
-//            return $this->view($violations, Response::HTTP_BAD_REQUEST);
             throw new ResourceValidationException($message);
         }
+
+        $article->setAuthor($author);
 
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($article);
@@ -81,7 +83,7 @@ class ArticleController extends FOSRestController
             $article,
             Response::HTTP_CREATED,
             [
-                'location' => $this->generateUrl('app_articles_show', ['id' => $article->getId()], UrlGeneratorInterface::ABSOLUTE_URL)
+                'location' => $this->generateUrl('app_article_show', ['id' => $article->getId()], UrlGeneratorInterface::ABSOLUTE_URL)
             ]
         );
     }
@@ -121,6 +123,7 @@ class ArticleController extends FOSRestController
      *
      * @Rest\View()
      *
+     *
      * @param $keyword
      * @param $order
      * @param $limit
@@ -129,15 +132,14 @@ class ArticleController extends FOSRestController
      */
     public function listAction($keyword, $order, $limit, $offset)
     {
-//        dump($keyword, $order, $limit, $offset);die;
         $pager = $this->getDoctrine()->getRepository('AppBundle:Article')->search($keyword, $order, $limit, $offset);
-        $articlesRepository = $this->getDoctrine()->getRepository('AppBundle:Article');
-        $articles = $articlesRepository->findBy([], ['id' => $order]);
+//        $articlesRepository = $this->getDoctrine()->getRepository('AppBundle:Article');
+//        $articles = $articlesRepository->findBy([], ['id' => $order]);
+////
+//        return $articles;
 //
-        return $articles;
-
-//        return $pager->getCurrentPageResults();
-//        return new Articles($pager);
+////        return $pager->getCurrentPageResults();
+        return new Articles($pager);
     }
 
     /**
@@ -146,19 +148,25 @@ class ArticleController extends FOSRestController
      *     name="app_article_delete",
      *     requirements={"id":"\d+"}
      * )
+     *
+     * @SWG\Response(
+     *     response="200",
+     *     description="deletes an article"
+     * )
+     *
      * @param Article $article
      * @return Response
      */
     public function deleteAction(Article $article)
     {
-//        if (is_null($article)){
-//            return new Response('Article not found!', Response::HTTP_NOT_FOUND);
-//        }
+        if (is_null($article)){
+            return new Response('Article not found!', Response::HTTP_NOT_FOUND);
+        }
 
-//        $entityManager = $this->getDoctrine()->getManager();
-//        $entityManager->remove($article);
-//        $entityManager->flush();
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->remove($article);
+        $entityManager->flush();
 
-        return new Response('aaa', 200);
+        return new Response('Article removed!', 200);
     }
 }

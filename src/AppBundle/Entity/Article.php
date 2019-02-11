@@ -5,6 +5,7 @@ namespace AppBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation as Serializer;
 use Symfony\Component\Validator\Constraints as Assert;
+use Hateoas\Configuration\Annotation as Hateoas;
 
 /**
  * Article
@@ -13,6 +14,44 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Entity(repositoryClass="AppBundle\Repository\ArticleRepository")
  *
  * @Serializer\ExclusionPolicy("all")
+ *
+ * @Hateoas\Relation(
+ *     "self",
+ *     href = @Hateoas\Route(
+ *     "app_article_show",
+ *     parameters = { "id" = "expr(object.getId())" },
+ *     absolute=true
+ *      )
+ * )
+ *
+ * @Hateoas\Relation(
+ *     "create",
+ *     href = @Hateoas\Route(
+ *     "app_article_create",
+ *     parameters = { "author_id" = "expr(object.getAuthor().getId())" },
+ *     absolute=true
+ *      )
+ * )
+ *
+ *  * @Hateoas\Relation(
+ *     "delete",
+ *     href = @Hateoas\Route(
+ *     "app_article_delete",
+ *     parameters={ "id" = "expr(object.getId())"},
+ *     absolute=true
+ *      )
+ * )
+ *
+ * @Hateoas\Relation(
+ *     "author",
+ *     embedded = @Hateoas\Embedded("expr(object.getAuthor())")
+ * )
+ *
+ *  * @Hateoas\Relation(
+ *     "weather",
+ *     embedded = @Hateoas\Embedded("expr(service('app.weather').getCurrent())")
+ * )
+ *
  */
 class Article
 {
@@ -35,9 +74,23 @@ class Article
      * @ORM\Column(name="title", type="string", length=100)
      *
      * @Serializer\Expose
+     * @Serializer\Since("1.0")
      * @Assert\NotBlank(groups={"Create"})
      */
     private $title;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Author", inversedBy="articles", cascade={"persist"})
+     */
+    private $author;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     *
+     * @Serializer\Expose()
+     * @Serializer\Since("2.0")
+     */
+    private $shortDescription;
 
     /**
      * @var string
@@ -45,14 +98,11 @@ class Article
      * @ORM\Column(name="content", type="text")
      *
      * @Serializer\Expose
+     * @Serializer\Since("1.0")
+     *
      * @Assert\NotBlank(groups={"Create"})
      */
     private $content;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Author", inversedBy="articles", cascade={"persist"})
-     */
-    private $author;
 
 
     /**
@@ -136,4 +186,22 @@ class Article
     {
         return $this->author;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getShortDescription()
+    {
+        return $this->shortDescription;
+    }
+
+    /**
+     * @param mixed $shortDescription
+     */
+    public function setShortDescription($shortDescription)
+    {
+        $this->shortDescription = $shortDescription;
+    }
+
+
 }

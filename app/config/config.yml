@@ -3,11 +3,13 @@ imports:
     - { resource: security.yml }
     - { resource: services.yml }
     - { resource: external/fos_rest/fos_rest.yml }
+    - { resource: external/csa_guzzle.yml }
 
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: en
+    weather_api_key: 'c70a55e4283fd546aa0771a48b9162ef'
 
 framework:
     #esi: ~
@@ -71,3 +73,5 @@ sensio_framework_extra:
    router:
         annotations: false
    request: { converters: true }
+
+nelmio_api_doc: ~

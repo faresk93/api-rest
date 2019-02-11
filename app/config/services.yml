@@ -33,3 +33,24 @@ services:
     # AppBundle\Service\ExampleService:
     #     arguments:
     #         $someArgument: 'some_value'
+
+    app.normalizer.resource_validation_exception:
+        class: AppBundle\Normalizer\NotFoundHttpExceptionNormalizer
+        arguments:
+            - { type: 'Symfony\Componenet\HttpKernel\Exception\NotFoundHttpException' }
+        tags:
+            - { name: app.normalizer }
+
+
+    app.exception_subscriber:
+        class: AppBundle\EventSubscriber\ExceptionSubscriber
+        arguments:
+            - '@jms_serializer'
+        tags:
+            - { name: kernel.event_subscriber }
+
+    app.weather:
+        class: AppBundle\Weather\Weather
+        public: true
+        arguments:
+            $apiKey: '%weather_api_key%'
